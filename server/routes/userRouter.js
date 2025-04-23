@@ -1,18 +1,13 @@
 import express from 'express';
 const router = express.Router(); // get function Router from express
+import userController from '../controllers/userController.js';
 
 
-router.post('/register', (req, res) => {
-  res.json({ message: 'Create a user' });
-});
+router.post('/register', userController.register);
 
-router.post('/login', (req, res) => {
-  res.json({ message: 'Login a user' });
-});
+router.post('/login', userController.login);
 
-router.get('/auth', (req, res) => {
-    res.status(200).json({ message: 'Authenticated' });
-  });
+router.get('/auth', userController.check);
 
 router.get('/:id', (req, res) => {
   res.json({ message: `Get user with ID ${req.params.id}` });
