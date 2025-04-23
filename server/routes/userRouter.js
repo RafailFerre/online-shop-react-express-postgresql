@@ -3,11 +3,11 @@ const router = express.Router(); // get function Router from express
 import userController from '../controllers/userController.js';
 
 
-router.post('/register', userController.register);
+router.post('/register', userController.register); // code sets up an HTTP POST route for the /register endpoint, which calls the register method on the userController instance when a request is made to that endpoint. In other words, when a POST request is sent to the /register URL, the register method in userController will be executed to handle the request.
 
 router.post('/login', userController.login);
 
-router.get('/auth', userController.check);
+router.get('/auth', userController.check); //code sets up an HTTP GET route for the /auth endpoint, which calls the check method on the userController instance when a request is made to that endpoint.
 
 router.get('/:id', (req, res) => {
   res.json({ message: `Get user with ID ${req.params.id}` });

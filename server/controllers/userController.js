@@ -1,3 +1,6 @@
+import ApiError from "../error/ApiError.js";
+
+// class with methods for working with users
 class UserController {
     async register(req, res) {
         res.json({ message: 'Create a user' });
@@ -7,10 +10,12 @@ class UserController {
         res.json({ message: 'Login a user' });
     }
 
-    async check(req, res) {
-        const query = req.query;
-        res.json(query);
-        // res.json({ message: 'Authenticated' });
+    async check(req, res, next) {
+        const {id} = req.query;
+        if (!id) {
+           return next(ApiError.badRequest(`User not found`));
+        }
+        res.json(id);
     }
 
     // async get(req, res) {
