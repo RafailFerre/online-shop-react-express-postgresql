@@ -1,4 +1,4 @@
-import ApiError from "../error/ApiError.js";
+import ApiError from "../error/ApiError.js";  // const ApiError = require('../error/ApiError');
 
 // class with methods for working with users
 class UserController {

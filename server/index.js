@@ -1,18 +1,18 @@
-// import 'dotenv/config';
-import express from 'express';
-import cors from 'cors';
-import { sequelize } from './db.js';
+// import 'dotenv/config'; // const dotenv = require('dotenv/config');
+import express from 'express'; // const express = require('express');
+import cors from 'cors'; // const cors = require('cors');
+import sequelize from './db.js'; // const sequelize = require('./db');
 
-import routes from './routes/index.js'; // import main router as routes from routes folder
-import errorHandler from './middleware/ErrorHandlingMiddleware.js';
+import routes from './routes/index.js'; // import main router as routes from routes folder  // const router = require('./routes/index');
+import errorHandler from './middleware/ErrorHandlingMiddleware.js';  // const errorHandler = require('./middleware/ErrorHandlingMiddleware');
 
-import { User, Basket, BasketDevice, Device, Type, Brand, DeviceInfo, Rating, TypeBrand } from './models/models.js';
+import { User, Basket, BasketDevice, Device, Type, Brand, DeviceInfo, Rating, TypeBrand } from './models/models.js'; // const { User, Basket, BasketDevice, Device, Type, Brand, DeviceInfo, Rating, TypeBrand } = require('./models/models');
 
 const PORT = process.env.PORT || 5000;
 
-const app = express();
+const app = express();  // create express app
 app.use(cors()); // make requests from client (browser)
-app.use(express.json()); // parse json
+app.use(express.json()); // make requests from client (browser) as json (parse JSON request bodies)
 
 app.use('/api', routes); // connect routers to app
 

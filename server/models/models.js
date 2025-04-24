@@ -1,5 +1,5 @@
-import { sequelize } from "../db.js";
-import { DataTypes } from "sequelize";
+import sequelize from "../db.js";  // const sequelize = require('../db');
+import { DataTypes } from "sequelize";  // const { DataTypes } = require('sequelize');
 
 export const User = sequelize.define("user", {
     id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },

@@ -1,8 +1,8 @@
-import "dotenv/config";
-import { Sequelize } from "sequelize";
+import "dotenv/config";  // const dotenv = require('dotenv/config');
+import { Sequelize } from "sequelize";  //const { Sequelize } = require('sequelize') || const Sequelize = require('sequelize').Sequelize;
 
 // Create a new Sequelize instance to connect to the PostgreSQL database.
-export const sequelize = new Sequelize(
+const sequelize = new Sequelize(
   process.env.DB_NAME, // Database name
   process.env.DB_USER, // Database username
   process.env.DB_PASSWORD, // Database password
@@ -13,8 +13,9 @@ export const sequelize = new Sequelize(
   }
 );
 
+export default sequelize;
+// module.exports = { sequelize };
 
-// import { Sequelize } from "sequelize";
 
 // export const sequelize = new Sequelize (
 //   process.env.DB_NAME, // name of database

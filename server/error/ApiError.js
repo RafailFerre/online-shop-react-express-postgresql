@@ -20,7 +20,7 @@ class ApiError extends Error {
 
 }
 
-export default ApiError;
+export default ApiError;  // module.exports = ApiError;
 
 // The ApiError class extends the built-in Error class and represents an error that occurs in an API. It has a constructor and three static methods that create instances of ApiError with specific status codes.
 

@@ -1,7 +1,7 @@
-import express from 'express';
+import express from 'express'; // const express = require('express');
 
 // Import sub-routers for different API endpoints
-import userRouter from './userRouter.js'; // Handles user-related API requests
+import userRouter from './userRouter.js'; // Handles user-related API requests  // const userRouter = require('./userRouter');
 import deviceRouter from './deviceRouter.js'; // Handles device-related API requests
 import brandRouter from './brandRouter.js'; // Handles brand-related API requests
 import typeRouter from './typeRouter.js'; // Handles type-related API requests
@@ -18,4 +18,4 @@ router.use('/type', typeRouter); // Mount type router at /type
 
 // Export the main router as the default export into main index.js as routes when imported 
 // This allows other files to import and use this router
-export default router;
+export default router;  // module.exports = router
