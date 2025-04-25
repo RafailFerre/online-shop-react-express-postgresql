@@ -1,5 +1,5 @@
-import express from 'express';
-const router = express.Router(); // get function Router from express
+import express from 'express'; // const express = require('express');
+const router = express.Router(); // get method Router from express
 import userController from '../controllers/userController.js';
 
 
@@ -24,7 +24,7 @@ router.delete('/', (req, res) => {
 export default router;
 
 // import { Router } from "express";
-// const routers = express.Router();
+// const router = express.Router();
 
 // router.post('/register', (req, res) => {});
 

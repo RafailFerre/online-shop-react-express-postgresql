@@ -1,24 +1,16 @@
-import express from 'express';
-const router = express.Router();
+import express from 'express'; // const express = require('express');
+const router = express.Router(); // get function Router from express 
+import typeController from '../controllers/typeController.js';
 
 
-router.post('/', (req, res) => {
-    res.json({ message: 'Create a type' });
-})
-router.get('/', (req, res) => {
-    res.json({ message: 'Get all types' });
-});
+router.post('/', typeController.create); // Listens for HTTP POST requests to the root URL ('/'). typeController.create: Calls the create function from the typeController module to handle the request.
 
-router.get('/:id', (req, res) => {
-    res.json({ message: `Get type with ID ${req.params.id}` });
-});
+router.get('/', typeController.getAll);
 
-router.put('/', (req, res) => {
-    res.json({ message: 'Update a type' });
-})
+router.get('/:id', typeController.getOne);
 
-router.delete('/', (req, res) => {
-    res.json({ message: 'Delete a type' });
-});
+router.put('/:id', typeController.update);
+
+router.delete('/:id', typeController.delete);
 
 export default router;

@@ -49,6 +49,7 @@ export const TypeBrand = sequelize.define("type_brand", {
     id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
 });
 
+// Define relationships between models
 User.hasOne(Basket);
 Basket.belongsTo(User);
 
@@ -73,5 +74,7 @@ BasketDevice.belongsTo(Device);
 Device.hasMany(DeviceInfo);
 DeviceInfo.belongsTo(Device);
 
-Type.belongsToMany(Brand, {through: TypeBrand });
-Brand.belongsToMany(Type, {through: TypeBrand });
+Type.belongsToMany(Brand, { through: TypeBrand });
+Brand.belongsToMany(Type, { through: TypeBrand });
+
+// Each model represents a table in the database and defines its structure and relationships with other tables.
