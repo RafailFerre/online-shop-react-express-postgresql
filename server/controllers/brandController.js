@@ -11,18 +11,18 @@ class BrandController {
 
             // Validate: Ensure name is a non-empty string
             if (!name || typeof name !== 'string' || name.trim() === '') {
-                return next(ApiError.badRequest('Brand name is required and must be a non-empty string'));
+                return next(ApiError.badRequest('Brand name is required and must be a non-empty string', { field: 'name', issue: 'required' }));
             }
 
             // Validate: Ensure name length does not exceed 50 characters
             if (name.length > 50) {
-                return next(ApiError.badRequest('Brand name must not exceed 50 characters'));
+                return next(ApiError.badRequest('Brand name must not exceed 50 characters', { field: 'name', issue: 'too_long' }));
             }
 
             // Check if a brand with the same name already exists
             const existingBrand = await Brand.findOne({ where: { name } });
             if (existingBrand) {
-                return next(ApiError.badRequest('Brand with this name already exists'));
+                return next(ApiError.badRequest('Brand with this name already exists', { field: 'name', issue: 'duplicate' }));
             }
 
             // Create new brand in the database

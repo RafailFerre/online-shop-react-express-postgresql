@@ -11,18 +11,18 @@ class TypeController {
 
             // Validate: Ensure name is a non-empty string
             if (!name || typeof name !== 'string' || name.trim() === '') {
-                return next(ApiError.badRequest('Type name is required and must be a non-empty string'));
+                return next(ApiError.badRequest('Type name is required and must be a non-empty string', { field: 'name', issue: 'required' }));
             }
 
             // Validate: Ensure name length does not exceed 50 characters
             if (name.length > 50) {
-                return next(ApiError.badRequest('Type name must not exceed 50 characters'));
+                return next(ApiError.badRequest('Type name must not exceed 50 characters', { field: 'name', issue: 'too_long' }));
             }
 
             // Check if a type with the same name already exists
             const existingType = await Type.findOne({ where: { name } });
             if (existingType) {
-                return next(ApiError.badRequest('Type with this name already exists'));
+                return next(ApiError.badRequest('Type with this name already exists', { field: 'name', issue: 'duplicate' }));
             }
 
             // Create new type in the database
