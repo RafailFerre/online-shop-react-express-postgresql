@@ -1,25 +1,16 @@
-import express from 'express';
-const router = express.Router();
+import express from 'express'; // const express = require('express');
+const router = express.Router(); // get method Router from express
+import deviceController from '../controllers/deviceController.js';
 
-router.post('/', (req, res) => {
-  res.json({ message: 'Create a device' });
-});
+router.post('/', deviceController.create); // Listens for HTTP POST requests to the root URL ('/'). deviceController.create: Calls the create function from the typeController module to handle the request.
 
-router.get('/', (req, res) => {
-  res.json({ message: 'Get all devices' });
-});
+router.get('/', deviceController.getAll);
 
-router.get('/:id', (req, res) => {
-  res.json({ message: `Get device with ID ${req.params.id}` });
-});
+router.get('/:id', deviceController.getOne);
 
-router.put('/', (req, res) => {
-  res.json({ message: 'Update a device' });
-})
+router.put('/:id', deviceController.update);
 
-router.delete('/', (req, res) => {
-  res.json({ message: 'Delete a device' });
-})
+router.delete('/:id', deviceController.delete);
 
 export default router;
 

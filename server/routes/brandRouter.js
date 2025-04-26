@@ -1,23 +1,18 @@
-import express from 'express';
-const router = express.Router();
+import express from 'express'; // const express = require('express');
+const router = express.Router(); // get method Router from express
+import brandController from '../controllers/brandController.js';
 
-router.post('/', (req, res) => {
-    res.json({ message: 'Create a brand' });
-})
-router.get('/', (req, res) => {
-    res.json({ message: 'Get all brands' });
-});
 
-router.get('/:id', (req, res) => {
-    res.json({ message: `Get brand with ID ${req.params.id}` });
-});
 
-router.put('/', (req, res) => {
-    res.json({ message: 'Update a brand' });
-})
+router.post('/', brandController.create); // Listens for HTTP POST requests to the root URL ('/'). brandController.create: Calls the create function from the typeController module to handle the request.
 
-router.delete('/', (req, res) => {
-    res.json({ message: 'Delete a brand' });
-});
+router.get('/', brandController.getAll); // Sets up an HTTP GET route for the root URL ('/') that calls the getAll function from the brandController module to handle the request.
+
+router.get('/:id', brandController.getOne);
+
+router.put('/:id', brandController.update);
+
+router.delete('/:id', brandController.delete);
+
 
 export default router;

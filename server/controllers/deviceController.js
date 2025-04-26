@@ -1,3 +1,6 @@
+import ApiError from '../error/ApiError.js';  // const ApiError = require('../error/ApiError');
+import { Device } from '../models/models.js';  // const { Device } = require('../models/models');
+
 class DeviceController {
     async create(req, res) {
         

@@ -1,23 +1,45 @@
+import httpStatus from 'http-status';  // const httpStatus = require('http-status');
+
+// ApiError class extends Error to handle API-specific errors
 class ApiError extends Error {
-    constructor(status, message) {
-        super();
-        this.status = status;
-        this.message = message;
+    // Constructor initializes error with status, message, and optional details
+    constructor(status, message, details = null) {
+        super(message); // Pass message to parent Error class
+        this.status = status; // HTTP status code (e.g., 400, 500)
+        this.message = message; // Error message
+        this.details = details; // Optional details (e.g., validation errors)
+        Error.captureStackTrace(this, this.constructor); // Capture stack trace
     }
 
-    static badRequest(message) {
-        return new ApiError(404, message);
+    // Create a Bad Request error (400)
+    static badRequest(message, details = null) {
+        return new ApiError(httpStatus.BAD_REQUEST, message, details);
     }
 
-    static internal(message) {
-        return new ApiError(500, message);
+    // Create an Internal Server Error (500)
+    static internal(message, details = null) {
+        return new ApiError(httpStatus.INTERNAL_SERVER_ERROR, message, details);
     }
 
-    static forbidden(message)
-    {
-        return new ApiError(403, message)
+    // Create a Forbidden error (403)
+    static forbidden(message, details = null) {
+        return new ApiError(httpStatus.FORBIDDEN, message, details);
     }
 
+    // Create an Unauthorized error (401)
+    static unauthorized(message, details = null) {
+        return new ApiError(httpStatus.UNAUTHORIZED, message, details);
+    }
+
+    // Create a Not Found error (404)
+    static notFound(message, details = null) {
+        return new ApiError(httpStatus.NOT_FOUND, message, details);
+    }
+
+    // Create an Unprocessable Entity error (422)
+    static unprocessableEntity(message, details = null) {
+        return new ApiError(httpStatus.UNPROCESSABLE_ENTITY, message, details);
+    }
 }
 
 export default ApiError;  // module.exports = ApiError;
