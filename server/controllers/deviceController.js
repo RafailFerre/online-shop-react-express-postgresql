@@ -1,23 +1,33 @@
-import ApiError from '../error/ApiError.js';  // const ApiError = require('../error/ApiError');
-import { Device } from '../models/models.js';  // const { Device } = require('../models/models');
+import ApiError from '../error/ApiError.js'; // const ApiError = require('../error/ApiError');
+import { Device, DeviceInfo, Rating, BasketDevice, Type, Brand } from '../models/models.js'; // const { Device, DeviceInfo, Rating, BasketDevice, Type, Brand } = require('../models/models');
+import upload from '../middleware/UploadHandlingMiddleware.js'; // const upload = require('../middleware/UploadHandlingMiddleware');
 
+// DeviceController manages HTTP requests for device-related operations
 class DeviceController {
-    async create(req, res) {
+    // Create a new device with image upload
+    async create(req, res, next) {
         
-    }
-    async getOne(req, res) {
-        
-    }
-
-    async getAll(req, res) {
 
     }
-    async update(req, res) {
-       
+
+    // Retrieve a single device by ID
+    async getOne(req, res, next) {
+
     }
 
-    async delete(req, res) {
-        
+    // Retrieve all devices with optional filtering
+    async getAll(req, res, next) {
+
+    }
+
+    // Update an existing device
+    async update(req, res, next) {
+
+    }
+
+    // Delete a device and its related data
+    async delete(req, res, next) {
+
     }
 }
 
