@@ -108,6 +108,7 @@ class DeviceController {
 
                 // Return created device
                 return res.json(device);
+
             } catch (error) {
                 // Delete uploaded file if there is an error
                 if (req.file) {
@@ -136,7 +137,7 @@ class DeviceController {
                 include: [
                     { model: Type, attributes: ['id', 'name'] },
                     { model: Brand, attributes: ['id', 'name'] },
-                    { model: DeviceInfo, as: 'device_infos' }, // Use correct alias
+                    { model: DeviceInfo, as: 'device_infos' }, // Alias from DeviceInfo model
                 ],
             });
 
