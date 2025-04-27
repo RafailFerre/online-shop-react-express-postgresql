@@ -32,7 +32,7 @@ class TypeController {
             return res.json(type);
         } catch (error) {
             // Handle unexpected errors
-            return next(ApiError.internal('Error creating type'));
+            return next(ApiError.internal('Error creating type', { details: error.message }));
         }
     }
 
@@ -59,7 +59,7 @@ class TypeController {
             return res.json(type);
         } catch (error) {
             // Handle unexpected errors
-            return next(ApiError.internal('Error fetching type'));
+            return next(ApiError.internal('Error fetching type', { details: error.message }));
         }
     }
 
@@ -73,7 +73,7 @@ class TypeController {
             return res.json(types);
         } catch (error) {
             // Handle unexpected errors
-            return next(ApiError.internal('Error fetching types'));
+            return next(ApiError.internal('Error fetching types', { details: error.message }));
         }
     }
 
@@ -121,7 +121,7 @@ class TypeController {
             return res.json(updatedType);
         } catch (error) {
             // Handle unexpected errors
-            return next(ApiError.internal('Error updating type'));
+            return next(ApiError.internal('Error updating type', { details: error.message }));
         }
     }
 
@@ -149,7 +149,7 @@ class TypeController {
             return res.json({ message: 'Type deleted successfully' });
         } catch (error) {
             // Handle unexpected errors
-            return next(ApiError.internal('Error deleting type'));
+            return next(ApiError.internal('Error deleting type', { details: error.message }));
         }
     }
 }

@@ -32,7 +32,7 @@ class BrandController {
             return res.json(brand);
         } catch (error) {
             // Handle unexpected errors
-            return next(ApiError.internal('Error creating brand'));
+            return next(ApiError.internal('Error creating brand', { details: error.message }));
         }
     }
 
@@ -59,7 +59,7 @@ class BrandController {
             return res.json(brand);
         } catch (error) {
             // Handle unexpected errors
-            return next(ApiError.internal('Error fetching brand'));
+            return next(ApiError.internal('Error fetching brand', { details: error.message }));
         }
     }
 
@@ -73,7 +73,7 @@ class BrandController {
             return res.json(brands);
         } catch (error) {
             // Handle unexpected errors
-            return next(ApiError.internal('Error fetching brands'));
+            return next(ApiError.internal('Error fetching brands', { details: error.message }));
         }
     }
 
@@ -121,7 +121,7 @@ class BrandController {
             return res.json(updatedBrand);
         } catch (error) {
             // Handle unexpected errors
-            return next(ApiError.internal('Error updating brand'));
+            return next(ApiError.internal('Error updating brand', { details: error.message }));
         }
     }
 
@@ -149,7 +149,7 @@ class BrandController {
             return res.json({ message: 'Brand deleted successfully' });
         } catch (error) {
             // Handle unexpected errors
-            return next(ApiError.internal('Error deleting brand'));
+            return next(ApiError.internal('Error deleting brand', { details: error.message }));
         }
     }
 }
