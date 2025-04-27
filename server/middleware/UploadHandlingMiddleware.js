@@ -1,7 +1,7 @@
 import multer from 'multer'; // const multer = require('multer');
 import { v4 as uuidv4 } from 'uuid'; // const { v4: uuidv4 } = require('uuid');
-import path from 'path'; // const path = require('path');
 import ApiError from '../error/ApiError.js';
+import path from 'path';
 import { fileURLToPath } from 'url'; // const { fileURLToPath } = require('url');
 
 // Resolve __dirname for ES Modules
@@ -12,7 +12,7 @@ const storage = multer.diskStorage({
     // Specify destination folder for uploaded files
     destination: (req, file, cb) => {
         // Set destination folder for uploaded files
-        const destinationPath = path.join(__dirname, '../../static/images/');
+        const destinationPath = path.join(__dirname, '../static/images/');
         cb(null, destinationPath); // Save files to static/images folder
     },
     // Generate filename for uploaded files
