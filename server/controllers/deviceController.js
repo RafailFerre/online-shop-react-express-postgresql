@@ -1,7 +1,12 @@
 import ApiError from '../error/ApiError.js';  // const ApiError = require('../error/ApiError');
 import { Device, DeviceInfo, Rating, BasketDevice, Type, Brand } from '../models/models.js';  // const { Device, DeviceInfo, Rating, BasketDevice, Type, Brand } = require('../models/models');
-import upload from '../middleware/UploadHandlingMiddleware.js'; // const upload = require('../middleware/UploadHandlingMiddleware');
+import upload from '../middleware/UploadMiddleware.js'; // const upload = require('../middleware/UploadHandlingMiddleware');
 import fs from 'fs/promises'; // const fs = require('fs/promises'); for file operations async/await: delete file image after upload from server (folder static/images) if there is an error
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+// Resolve __dirname for ES Modules
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 // DeviceController manages HTTP requests for device-related operations
 class DeviceController {
@@ -106,8 +111,8 @@ class DeviceController {
                     }
                 }
 
-                // Return created device
-                return res.json(device);
+                // Return the status code and created device
+                return res.status(201).json(device);
 
             } catch (error) {
                 // Delete uploaded file if there is an error
@@ -210,113 +215,149 @@ class DeviceController {
         upload(req, res, async (err) => {
             try {
                 // Log request data for debugging
-                console.log('Update device request:', { body: req.body, file: req.file });
+                console.log('Update device request:', { params: req.params, body: req.body, file: req.file });
 
-                // Handle any errors from middleware
+                // Handle any errors from multer
                 if (err) {
                     return next(err);
                 }
 
-                // Extract data from request body and ID from parameters
+                // Extract ID from request parameters
                 const { id } = req.params;
-                const { name, price, typeId, brandId, info } = req.body;
 
                 // Validate: Ensure ID is a positive integer
                 if (!id || isNaN(id) || parseInt(id) <= 0) {
+                    if (req.file) {
+                        await fs.unlink(req.file.path);
+                    }
                     return next(ApiError.badRequest('Invalid device ID', { field: 'id' }));
                 }
 
-                // Check if device exists
+                // Find existing device
                 const device = await Device.findByPk(id);
                 if (!device) {
+                    if (req.file) {
+                        await fs.unlink(req.file.path);
+                    }
                     return next(ApiError.notFound('Device not found', { field: 'id' }));
                 }
 
-                // Validate: Check provided fields
-                if (name && (typeof name !== 'string' || name.trim() === '')) {
+                // Extract data from request body
+                const { name, price, typeId, brandId, info } = req.body;
+
+                // Validate input data (only if provided)
+                if (name !== undefined && (typeof name !== 'string' || name.trim() === '')) {
+                    if (req.file) {
+                        await fs.unlink(req.file.path);
+                    }
                     return next(ApiError.badRequest('Device name must be a non-empty string', { field: 'name' }));
                 }
-                if (price && (isNaN(price) || parseInt(price) <= 0)) {
+                if (price !== undefined && (isNaN(price) || parseInt(price) <= 0)) {
+                    if (req.file) {
+                        await fs.unlink(req.file.path);
+                    }
                     return next(ApiError.badRequest('Price must be a positive number', { field: 'price' }));
                 }
-                if (typeId && (isNaN(typeId) || parseInt(typeId) <= 0)) {
-                    return next(ApiError.badRequest('Invalid type ID', { field: 'typeId' }));
-                }
-                if (brandId && (isNaN(brandId) || parseInt(brandId) <= 0)) {
-                    return next(ApiError.badRequest('Invalid brand ID', { field: 'brandId' }));
-                }
-
-                // Validate: Check if new name is unique
-                if (name && name !== device.name) {
-                    const existingDevice = await Device.findOne({ where: { name } });
-                    if (existingDevice) {
-                        return next(ApiError.badRequest('Device with this name already exists', { field: 'name', issue: 'duplicate' }));
+                if (typeId !== undefined && (isNaN(typeId) || parseInt(typeId) <= 0)) {
+                    if (req.file) {
+                        await fs.unlink(req.file.path);
                     }
+                    return next(ApiError.badRequest('Type ID must be a positive number', { field: 'typeId' }));
                 }
-
-                // Validate: Check if type and brand exist
-                if (typeId) {
-                    const type = await Type.findByPk(typeId);
-                    if (!type) {
-                        return next(ApiError.notFound('Type not found', { field: 'typeId' }));
+                if (brandId !== undefined && (isNaN(brandId) || parseInt(brandId) <= 0)) {
+                    if (req.file) {
+                        await fs.unlink(req.file.path);
                     }
-                }
-                if (brandId) {
-                    const brand = await Brand.findByPk(brandId);
-                    if (!brand) {
-                        return next(ApiError.notFound('Brand not found', { field: 'brandId' }));
-                    }
+                    return next(ApiError.badRequest('Brand ID must be a positive number', { field: 'brandId' }));
                 }
 
                 // Prepare update data
                 const updateData = {};
-                if (name) updateData.name = name.trim();
-                if (price) updateData.price = parseInt(price);
-                if (typeId) updateData.typeId = parseInt(typeId);
-                if (brandId) updateData.brandId = parseInt(brandId);
-                if (req.file) updateData.img = `images/${req.file.filename}`;
+                if (name !== undefined) updateData.name = name.trim();
+                if (price !== undefined) updateData.price = parseInt(price);
+                if (typeId !== undefined) updateData.typeId = parseInt(typeId);
+                if (brandId !== undefined) updateData.brandId = parseInt(brandId);
 
-                // Update device
-                await Device.update(updateData, { where: { id } });
+                // Handle image update
+                let oldImagePath = null;
+                if (req.file) {
+                    // Store path of old image for deletion
+                    if (device.img) {
+                        oldImagePath = path.normalize(path.join(__dirname, '../static/', device.img));
+                    }
+                    updateData.img = `images/${req.file.filename}`;
+                }
 
-                // Process device info if provided
+                // Parse and validate info if provided
+                let deviceInfo = [];
                 if (info) {
-                    let infoArray;
                     try {
-                        infoArray = JSON.parse(info); // Parse info as JSON
-                    } catch (parseError) {
-                        return next(ApiError.badRequest('Invalid JSON format in info field', { field: 'info', issue: parseError.message }));
-                    }
-                    if (!Array.isArray(infoArray)) {
-                        return next(ApiError.badRequest('Info must be an array', { field: 'info' }));
-                    }
-                    // Delete existing device info
-                    await DeviceInfo.destroy({ where: { deviceId: id } });
-                    // Create new device info
-                    for (const item of infoArray) {
-                        if (!item.title || !item.description) {
-                            return next(ApiError.badRequest('Device info must have title and description', { field: 'info' }));
+                        deviceInfo = JSON.parse(info);
+                        if (!Array.isArray(deviceInfo)) {
+                            if (req.file) {
+                                await fs.unlink(req.file.path);
+                            }
+                            return next(ApiError.badRequest('Info must be a JSON array', { field: 'info' }));
                         }
-                        await DeviceInfo.create({
-                            title: item.title,
-                            description: item.description,
-                            deviceId: id,
-                        });
+                        for (const item of deviceInfo) {
+                            if (!item.title || !item.description || typeof item.title !== 'string' || typeof item.description !== 'string') {
+                                if (req.file) {
+                                    await fs.unlink(req.file.path);
+                                }
+                                return next(ApiError.badRequest('Each info item must have valid title and description', { field: 'info' }));
+                            }
+                        }
+                    } catch (e) {
+                        if (req.file) {
+                            await fs.unlink(req.file.path);
+                        }
+                        return next(ApiError.badRequest('Invalid JSON format for info', { field: 'info' }, e));
                     }
                 }
 
-                // Fetch updated device
+                // Update device
+                await device.update(updateData);
+
+                // Update device info if provided
+                if (deviceInfo.length > 0) {
+                    // Delete existing device info
+                    await DeviceInfo.destroy({ where: { deviceId: id } });
+                    // Create new device info
+                    await DeviceInfo.bulkCreate(
+                        deviceInfo.map((item) => ({
+                            title: item.title,
+                            description: item.description,
+                            deviceId: id,
+                        }))
+                    );
+                }
+
+                // Delete old image if a new one was uploaded and file exists
+                if (oldImagePath) {
+                    try {
+                        await fs.unlink(oldImagePath);
+                        // console.log('Old image deleted:', oldImagePath);
+                    } catch (e) {
+                            console.error('Failed to delete old image:', e);
+                    }
+                }
+
+                // Fetch updated device with related data
                 const updatedDevice = await Device.findByPk(id, {
                     include: [
                         { model: Type, attributes: ['id', 'name'] },
                         { model: Brand, attributes: ['id', 'name'] },
-                        { model: DeviceInfo, as: 'device_infos' }, // Use correct alias
+                        { model: DeviceInfo, as: 'device_infos' },
                     ],
                 });
 
                 // Return updated device
                 return res.json(updatedDevice);
             } catch (error) {
+                // Delete uploaded file if an error occurs
+                if (req.file) {
+                    await fs.unlink(req.file.path);
+                }
                 // Log full error details for debugging
                 console.error('Error in update device:', error);
                 return next(ApiError.internal('Error updating device', { details: error.message }));

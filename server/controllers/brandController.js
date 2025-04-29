@@ -28,8 +28,8 @@ class BrandController {
             // Create new brand in the database
             const brand = await Brand.create({ name: name.trim() });
 
-            // Return the created brand as JSON
-            return res.json(brand);
+            // Return the status code 201 and created brand as JSON
+            return res.status(201).json(brand);
         } catch (error) {
             // Handle unexpected errors
             return next(ApiError.internal('Error creating brand', { details: error.message }));

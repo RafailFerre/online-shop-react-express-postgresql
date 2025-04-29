@@ -28,8 +28,8 @@ class TypeController {
             // Create new type in the database
             const type = await Type.create({ name: name.trim() });
 
-            // Return the created type as JSON
-            return res.json(type);
+            // Return the status code 201 and created type as JSON
+            return res.status(201).json(type);
         } catch (error) {
             // Handle unexpected errors
             return next(ApiError.internal('Error creating type', { details: error.message }));
