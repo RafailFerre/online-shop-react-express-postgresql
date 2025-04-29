@@ -382,13 +382,32 @@ class DeviceController {
                 return next(ApiError.notFound('Device not found', { field: 'id' }));
             }
 
-            // Delete related data
-            await DeviceInfo.destroy({ where: { deviceId: id } });
-            await Rating.destroy({ where: { deviceId: id } });
-            await BasketDevice.destroy({ where: { deviceId: id } });
+            // Handle image for deletion
+            let imagePath = null;
+            if (req.file) {
+                // Store path of old image for deletion
+                if (device.img) {
+                    imagePath = path.normalize(path.join(__dirname, '../static/', device.img));
+                }
+            }
 
-            // Delete device
-            await Device.destroy({ where: { id } });
+            // Delete related data and device
+            await Promise.all([
+                await DeviceInfo.destroy({ where: { deviceId: id } }),
+                await Rating.destroy({ where: { deviceId: id } }),
+                await BasketDevice.destroy({ where: { deviceId: id } }),
+                await Device.destroy({ where: { id } })
+            ]);
+
+            // Delete old image if device was deleted
+            if (imagePath) {
+                try {
+                    await fs.unlink(imagePath);
+                    // console.log('Old image deleted:', oldImagePath);
+                } catch (e) {
+                        console.error('Failed to delete image:', e);
+                }
+            }
 
             // Return success message
             return res.json({ message: 'Device deleted successfully' });
