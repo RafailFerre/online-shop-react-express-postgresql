@@ -1,3 +1,6 @@
+/* eslint-disable no-undef */
+/* eslint-disable no-unused-vars */
+
 import ApiError from '../error/ApiError.js';
 
 // ErrorHandlingMiddleware handles errors in Express.js applications

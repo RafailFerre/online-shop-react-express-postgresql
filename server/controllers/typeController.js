@@ -11,28 +11,28 @@ class TypeController {
 
             // Validate: Ensure name is a non-empty string
             if (!name || typeof name !== 'string' || name.trim() === '') {
-                return next(ApiError.badRequest('Type name is required and must be a non-empty string'));
+                return next(ApiError.badRequest('Type name is required and must be a non-empty string', { field: 'name', issue: 'required' }));
             }
 
             // Validate: Ensure name length does not exceed 50 characters
             if (name.length > 50) {
-                return next(ApiError.badRequest('Type name must not exceed 50 characters'));
+                return next(ApiError.badRequest('Type name must not exceed 50 characters', { field: 'name', issue: 'too_long' }));
             }
 
             // Check if a type with the same name already exists
             const existingType = await Type.findOne({ where: { name } });
             if (existingType) {
-                return next(ApiError.badRequest('Type with this name already exists'));
+                return next(ApiError.badRequest('Type with this name already exists', { field: 'name', issue: 'duplicate' }));
             }
 
             // Create new type in the database
             const type = await Type.create({ name: name.trim() });
 
-            // Return the created type as JSON
-            return res.json(type);
+            // Return the status code 201 and created type as JSON
+            return res.status(201).json(type);
         } catch (error) {
             // Handle unexpected errors
-            return next(ApiError.internal('Error creating type'));
+            return next(ApiError.internal('Error creating type', { details: error.message }));
         }
     }
 
@@ -59,7 +59,7 @@ class TypeController {
             return res.json(type);
         } catch (error) {
             // Handle unexpected errors
-            return next(ApiError.internal('Error fetching type'));
+            return next(ApiError.internal('Error fetching type', { details: error.message }));
         }
     }
 
@@ -73,7 +73,7 @@ class TypeController {
             return res.json(types);
         } catch (error) {
             // Handle unexpected errors
-            return next(ApiError.internal('Error fetching types'));
+            return next(ApiError.internal('Error fetching types', { details: error.message }));
         }
     }
 
@@ -121,7 +121,7 @@ class TypeController {
             return res.json(updatedType);
         } catch (error) {
             // Handle unexpected errors
-            return next(ApiError.internal('Error updating type'));
+            return next(ApiError.internal('Error updating type', { details: error.message }));
         }
     }
 
@@ -149,7 +149,7 @@ class TypeController {
             return res.json({ message: 'Type deleted successfully' });
         } catch (error) {
             // Handle unexpected errors
-            return next(ApiError.internal('Error deleting type'));
+            return next(ApiError.internal('Error deleting type', { details: error.message }));
         }
     }
 }

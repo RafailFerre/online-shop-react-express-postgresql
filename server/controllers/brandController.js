@@ -11,28 +11,28 @@ class BrandController {
 
             // Validate: Ensure name is a non-empty string
             if (!name || typeof name !== 'string' || name.trim() === '') {
-                return next(ApiError.badRequest('Brand name is required and must be a non-empty string'));
+                return next(ApiError.badRequest('Brand name is required and must be a non-empty string', { field: 'name', issue: 'required' }));
             }
 
             // Validate: Ensure name length does not exceed 50 characters
             if (name.length > 50) {
-                return next(ApiError.badRequest('Brand name must not exceed 50 characters'));
+                return next(ApiError.badRequest('Brand name must not exceed 50 characters', { field: 'name', issue: 'too_long' }));
             }
 
             // Check if a brand with the same name already exists
             const existingBrand = await Brand.findOne({ where: { name } });
             if (existingBrand) {
-                return next(ApiError.badRequest('Brand with this name already exists'));
+                return next(ApiError.badRequest('Brand with this name already exists', { field: 'name', issue: 'duplicate' }));
             }
 
             // Create new brand in the database
             const brand = await Brand.create({ name: name.trim() });
 
-            // Return the created brand as JSON
-            return res.json(brand);
+            // Return the status code 201 and created brand as JSON
+            return res.status(201).json(brand);
         } catch (error) {
             // Handle unexpected errors
-            return next(ApiError.internal('Error creating brand'));
+            return next(ApiError.internal('Error creating brand', { details: error.message }));
         }
     }
 
@@ -59,7 +59,7 @@ class BrandController {
             return res.json(brand);
         } catch (error) {
             // Handle unexpected errors
-            return next(ApiError.internal('Error fetching brand'));
+            return next(ApiError.internal('Error fetching brand', { details: error.message }));
         }
     }
 
@@ -73,7 +73,7 @@ class BrandController {
             return res.json(brands);
         } catch (error) {
             // Handle unexpected errors
-            return next(ApiError.internal('Error fetching brands'));
+            return next(ApiError.internal('Error fetching brands', { details: error.message }));
         }
     }
 
@@ -121,7 +121,7 @@ class BrandController {
             return res.json(updatedBrand);
         } catch (error) {
             // Handle unexpected errors
-            return next(ApiError.internal('Error updating brand'));
+            return next(ApiError.internal('Error updating brand', { details: error.message }));
         }
     }
 
@@ -149,7 +149,7 @@ class BrandController {
             return res.json({ message: 'Brand deleted successfully' });
         } catch (error) {
             // Handle unexpected errors
-            return next(ApiError.internal('Error deleting brand'));
+            return next(ApiError.internal('Error deleting brand', { details: error.message }));
         }
     }
 }
