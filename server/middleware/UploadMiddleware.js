@@ -29,10 +29,10 @@ const upload = multer({
     storage,
     // Filter files to allow only images
     fileFilter: (req, file, cb) => {
-        // Check if file is an image (jpg, jpeg, or png)
-        if (!file.mimetype.match(/image\/(jpg|jpeg|png)/)) {
+        // Check if file is an image (jpg, jpeg, png or webp)
+        if (!file.mimetype.match(/image\/(jpg|jpeg|png|webp)/)) {
             // Reject file and return error if not an image
-            return cb(ApiError.badRequest('Only JPG, JPEG, or PNG images are allowed', { field: 'img', issue: 'invalid_format' }), false);
+            return cb(ApiError.badRequest('Only JPG, JPEG, PNG or WEBP images are allowed', { field: 'img', issue: 'invalid_format' }), false);
         }
         // Accept file if it passes the filter
         cb(null, true);
