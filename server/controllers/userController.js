@@ -66,6 +66,7 @@ class UserController {
 
             // --- Create Basket ---
             // Create a basket for the new user (1:1 relationship)
+            // eslint-disable-next-line no-unused-vars
             const basket = await Basket.create({userId: user.id});
 
             // --- Generate JWT ---
@@ -107,6 +108,7 @@ class UserController {
         return res.json({token, user: {id: user.id, email: user.email, role: user.role}});
     }
 
+    // eslint-disable-next-line no-unused-vars
     async check(req, res, next) {
         const token = generateJwt(req.user.id, req.user.email, req.user.role);
         return res.json({token, user: {id: req.user.id, email: req.user.email, role: req.user.role}});
