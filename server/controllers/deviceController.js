@@ -1,9 +1,9 @@
 import ApiError from '../error/ApiError.js';  // const ApiError = require('../error/ApiError');
 import { Device, DeviceInfo, Rating, BasketDevice, Type, Brand } from '../models/models.js';  // const { Device, DeviceInfo, Rating, BasketDevice, Type, Brand } = require('../models/models');
 import upload from '../middleware/UploadMiddleware.js'; // const upload = require('../middleware/UploadHandlingMiddleware');
-import fs from 'fs/promises'; // const fs = require('fs/promises'); for file operations async/await: delete file image after upload from server (folder static/images) if there is an error
-import path from 'path';
-import { fileURLToPath } from 'url';
+import fs from 'fs/promises'; // const fs = require('fs/promises'); for file operations async/await: delete file image after upload from server (folder static/images) if there is an error and when delete device
+import path from 'path'; // const path = require('path');
+import { fileURLToPath } from 'url'; // const { fileURLToPath } = require('url');
 
 // Resolve __dirname for ES Modules
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
