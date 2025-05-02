@@ -77,11 +77,7 @@ class UserController {
             // Return the JWT token and user data to the client
             return res.status(201).json({
                 token, // JWT for authentication in future requests
-                user: {
-                    id: user.id,
-                    email: user.email,
-                    role: user.role,
-                }
+                user: { id: user.id, email: user.email, role: user.role }
             });
         } catch (error) {
             // --- Error Handling ---
@@ -92,34 +88,70 @@ class UserController {
         }
     }
 
+    // Authenticates a user with email and password
     async login(req, res, next) {
-        const {email, password} = req.body;
-        const user = await User.findOne({where: {email}});
-        if (!user) {
-            return next(ApiError.internal('User not found'));
-        }
+        try {
+            // Extract email and password from the request body
+            const { email, password } = req.body;
 
-        const comparePassword = bcrypt.compareSync(password, user.password);
-        if (!comparePassword) {
-            return next(ApiError.internal('Invalid password'));
-        }
+            // Validate required fields
+            if (!email || !password) {
+                return next(ApiError.badRequest('Email and password are required', { fields: ['email', 'password'] }));
+            }
 
-        const token = generateJwt(user.id, user.email, user.role);
-        return res.json({token, user: {id: user.id, email: user.email, role: user.role}});
+            // Find user by email
+            const user = await User.findOne({ where: { email } });
+            if (!user) {
+                return next(ApiError.unauthorized('Invalid email or password', { field: 'email' }));
+            }
+
+            // Compare provided password with stored hash
+            const isPasswordValid = await bcrypt.compare(password, user.password);
+            if (!isPasswordValid) {
+                return next(ApiError.unauthorized('Invalid email or password', { field: 'password' }));
+            }
+
+            // Generate JWT token
+            const token = generateJwt(user.id, user.email, user.role);
+
+            // Return token and user data
+            return res.json({
+                token,
+                user: { id: user.id, email: user.email, role: user.role }
+            });
+        } catch (error) {
+            console.error('Error logging in user:', error);
+            return next(ApiError.internal('Error logging in user', { details: error.message }));
+        }
     }
 
-    // eslint-disable-next-line no-unused-vars
+    // Checks if the user is authenticated and returns their data
     async check(req, res, next) {
-        const token = generateJwt(req.user.id, req.user.email, req.user.role);
-        return res.json({token, user: {id: req.user.id, email: req.user.email, role: req.user.role}});
+        try {
+            // User data is already verified and attached by AuthMiddleware
+            const { id, email, role } = req.user;
+
+            // Generate a new token (optional, for token refresh)
+            const token = generateJwt(id, email, role);
+
+            // Return user data and new token
+            return res.json({
+                token,
+                user: { id, email, role }
+            });
+        } catch (error) {
+            console.error('Error checking user:', error);
+            return next(ApiError.internal('Error checking user', { details: error.message }));
+        }
     }
 
 
 
+    async getAll(req, res) {
+        res.json({ message: 'Get all users' });
+    }
 
-
-
-    async get(req, res) {
+    async getOne(req, res) {
         res.json({ message: `Get user with ID ${req.params.id}` });
     }
 
