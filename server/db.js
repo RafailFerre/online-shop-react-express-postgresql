@@ -1,3 +1,4 @@
+/* eslint-disable no-undef */
 import "dotenv/config";  // const dotenv = require('dotenv/config');
 import { Sequelize } from "sequelize";  //const { Sequelize } = require('sequelize') || const Sequelize = require('sequelize').Sequelize;
 
