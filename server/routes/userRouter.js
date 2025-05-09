@@ -4,8 +4,8 @@ import userController from '../controllers/userController.js';
 import AuthMiddleware from '../middleware/AuthMiddleware.js';
 import RoleCheckMiddleware from '../middleware/RoleCheckMiddleware.js';
 
-
-router.post('/register', userController.register); // code sets up an HTTP POST route for the /register endpoint, which calls the register method on the userController instance when a request is made to that endpoint. In other words, when a POST request is sent to the /register URL, the register method in userController will be executed to handle the request.
+// Registration (requires AuthMiddleware for admin role check for creation of admin)
+router.post('/register', AuthMiddleware, userController.register); // code sets up an HTTP POST route for the /register endpoint, which calls the register method on the userController instance when a request is made to that endpoint. In other words, when a POST request is sent to the /register URL, the register method in userController will be executed to handle the request.
 
 router.post('/login', userController.login);
 
@@ -17,8 +17,10 @@ router.put('/:id', AuthMiddleware, userController.update)
 
 router.delete('/:id', AuthMiddleware, userController.delete);
 
-
 router.get('/', AuthMiddleware, RoleCheckMiddleware(['ADMIN']), userController.getAll);
+
+// Public route to initialize create first admin
+router.post('/init-admin', userController.initAdmin);
 
 export default router;
 

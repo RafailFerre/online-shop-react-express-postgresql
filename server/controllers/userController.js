@@ -4,7 +4,7 @@ import ApiError from "../error/ApiError.js";  // const ApiError = require('../er
 import { User, Basket, BasketDevice, Rating } from "../models/models.js";  // const { User, Basket } = require('../models/models');
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
-// import 'dotenv/config';
+import 'dotenv/config';
 
 
 // Function to generate a JWT token for the user
@@ -48,9 +48,14 @@ class UserController {
             //     return next(ApiError.badRequest('Invalid role. Must be USER or ADMIN', { field: 'role' }));
             // }
 
-            // Check if a user with the same email already exists
-            const candidate = await User.findOne({ where: { email } });
-            if (candidate) {
+            // Check if admin is registering an admin
+            if (role === 'ADMIN' && (!req.user || req.user.role !== 'ADMIN')) {
+                return next(ApiError.forbidden('Only admins can register new admins'));
+            }
+
+            // Check if email is already registered
+            const existingUser = await User.findOne({ where: { email } });
+            if (existingUser) {
                 return next(ApiError.badRequest('Email already registered', { field: 'email' }));
             }
 
@@ -323,6 +328,75 @@ class UserController {
             return next(ApiError.internal('Error deleting user', { details: error.message }));
         }
     }
+
+
+    // Initializes the first admin user
+    // Expects: req.body = { email, password, secret }
+    // Returns: JSON with JWT token and user data (id, email, role)
+    // Throws: ApiError if admins exist, secret is invalid, or validation fails
+    async initAdmin(req, res, next) {
+        try {
+            // Extract and normalize email, password, secret from request body
+            let { email, password, secret } = req.body;
+            email = email ? email.trim().toLowerCase() : '';
+            password = password ? password.trim() : '';
+            secret = secret ? secret.trim() : '';
+
+            // Validate required fields
+            if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+                return next(ApiError.badRequest('Invalid email format', { field: 'email' }));
+            }
+            if (!password || password.length < 6) {
+                return next(ApiError.badRequest('Password must be at least 6 characters', { field: 'password' }));
+            }
+            if (!secret) {
+                return next(ApiError.badRequest('Secret key is required', { field: 'secret' }));
+            }
+
+            // Verify the secret key from .env
+            if (secret !== process.env.INIT_ADMIN_SECRET) {
+                return next(ApiError.forbidden('Invalid secret key'));
+            }
+
+            // Check if any admins already exist
+            const adminCount = await User.count({ where: { role: 'ADMIN' } });
+            if (adminCount > 0) {
+                return next(ApiError.forbidden('Admin already exists. Use /register with admin credentials'));
+            }
+
+            // Check if email is already registered
+            const existingUser = await User.findOne({ where: { email } });
+            if (existingUser) {
+                return next(ApiError.badRequest('Email already registered', { field: 'email' }));
+            }
+
+            // Hash the password with bcrypt (10 salt rounds)
+            const hashPassword = await bcrypt.hash(password, 10);
+
+            // Create new admin user
+            const user = await User.create({
+                email,
+                password: hashPassword,
+                role: 'ADMIN',
+            });
+
+            // Create a basket for the user
+            await Basket.create({ userId: user.id });
+
+            // Generate JWT token
+            const token = generateJwt(user.id, user.email, user.role);
+
+            // Return token and user data
+            return res.json({
+                token,
+                user: { id: user.id, email: user.email, role: user.role },
+            });
+        } catch (error) {
+            console.error('Error initializing admin:', error);
+            return next(ApiError.internal('Error initializing admin', { details: error.message }));
+        }
+    }
+
 }
 
 export default new UserController();

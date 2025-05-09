@@ -13,10 +13,18 @@ export default function (req, res, next) {
         // Extract the token from the Authorization header (format: Bearer <token>)
         const token = req.headers.authorization?.split(' ')[1];
         
-        // Check if token is provided; if not, return 401 Unauthorized error
+        // // Check if token is provided; if not, return 401 Unauthorized error
+        // if (!token) {
+        //     return next(ApiError.unauthorized('No token provided'));
+        // }
+
+
+        // If no token is provided, proceed without setting req.user (for public routes like register)
         if (!token) {
-            return next(ApiError.unauthorized('No token provided'));
+            req.user = null; // Explicitly set req.user to null for clarity
+            return next();
         }
+
 
         // Verify the token using the secret key from environment variables
         const decoded = jwt.verify(token, process.env.JWT_SECRET_KEY);
