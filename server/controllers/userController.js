@@ -1,6 +1,7 @@
+/* eslint-disable no-unused-vars */
 /* eslint-disable no-undef */
 import ApiError from "../error/ApiError.js";  // const ApiError = require('../error/ApiError');
-import { User, Basket } from "../models/models.js";  // const { User, Basket } = require('../models/models');
+import { User, Basket, BasketDevice, Rating } from "../models/models.js";  // const { User, Basket } = require('../models/models');
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 // import 'dotenv/config';
@@ -22,7 +23,9 @@ class UserController {
     async register(req, res, next) {
         try {
             // Extract email, password, and role from the request body
-            const { email, password, role } = req.body;
+            let { email, password, role } = req.body;
+            email = email.toLowerCase().trim(); // Convert email to lowercase and remove leading/trailing spaces
+            password = password.trim(); // Remove leading/trailing spaces
 
             // --- Validation ---
             // Check if email and password are provided
@@ -30,8 +33,7 @@ class UserController {
                 return next(ApiError.badRequest('Email and password are required', { fields: ['email', 'password'] }));
             }
 
-            // Validate email format using a regular expression
-            // Ensures email has format: <something>@<domain>.<tld>
+            // Validate email format using a regular expression. Ensures email has format: <something>@<domain>.<tld>
             if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
                 return next(ApiError.badRequest('Invalid email format', { field: 'email' }));
             }
@@ -47,9 +49,9 @@ class UserController {
             // }
 
             // Check if a user with the same email already exists
-            const candidate = await User.findOne({where: {email}});
+            const candidate = await User.findOne({ where: { email } });
             if (candidate) {
-                return ApiError.badRequest('User with this email already exists');
+                return next(ApiError.badRequest('Email already registered', { field: 'email' }));
             }
 
             // --- Hash Password ---
@@ -59,14 +61,13 @@ class UserController {
             // --- Create User ---
             // Create a new user in the database
             const user = await User.create({
-                email, 
+                email: email, 
                 role: role || 'USER', 
                 password: hashPassword
             });
 
             // --- Create Basket ---
             // Create a basket for the new user (1:1 relationship)
-            // eslint-disable-next-line no-unused-vars
             const basket = await Basket.create({userId: user.id});
 
             // --- Generate JWT ---
@@ -92,7 +93,9 @@ class UserController {
     async login(req, res, next) {
         try {
             // Extract email and password from the request body
-            const { email, password } = req.body;
+            let { email, password } = req.body;
+            email = email.toLowerCase().trim();
+            password = password.trim();
 
             // Validate required fields
             if (!email || !password) {
@@ -146,21 +149,179 @@ class UserController {
     }
 
 
-
-    async getAll(req, res) {
-        res.json({ message: 'Get all users' });
+    async getAll(req, res, next) {
+        try {
+            // Fetch all users from the database, excluding password
+            const users = await User.findAll({ attributes: ['id', 'email', 'role'] });
+            
+            // Return the list of users as JSON
+            return res.json(users);
+        } catch (error) {
+            // Handle unexpected errors
+            console.error('Error retrieving users:', error);
+            return next(ApiError.internal('Error fetching users', { details: error.message }));
+        }
+        
     }
 
-    async getOne(req, res) {
-        res.json({ message: `Get user with ID ${req.params.id}` });
+    // Retrieves data for a single user by ID
+    // Expects: req.params.id (user ID), valid JWT token (via AuthMiddleware)
+    async getOne(req, res, next) {
+       try {
+            // Extract ID from request parameters
+            const { id } = req.params;
+
+            // Validate: Ensure ID is a positive integer
+            if (!id || isNaN(id) || parseInt(id) <= 0) {
+                return next(ApiError.badRequest('Invalid user ID', { field: 'id' }));
+            }
+
+            // Find user by Primary Key, excluding password
+            const user = await User.findByPk(id, { attributes: ['id', 'email', 'role'] });
+
+            // Check if user exists
+            if (!user) {
+                return next(ApiError.notFound('User not found', { field: 'id' }));
+            }
+
+            // Check access: users can view their own data, admins can view any user
+            if (user.id !== req.user.id && req.user.role !== 'ADMIN') {
+                return next(ApiError.forbidden('Access denied. You can only view your own data'));
+            }
+
+            // Return user data
+            return res.json(user);
+       } catch (error) {
+        console.error('Error getting user:', error);
+        return next(ApiError.internal('Error getting user', { details: error.message }));
+       }
     }
 
-    async update(req, res) {
-        res.json({ message: 'Update a user' });
+    // Updates user data (email, password, role)
+    // Expects: req.params.id (user ID), req.body (email, password, role), valid JWT token
+    // Returns: JSON with updated user data (id, email, role)
+    // Throws: ApiError on validation failure, access denial, or database errors
+    async update(req, res, next) {
+        try {
+            // Extract id, email, password, and role from the parameters and request body
+            const { id } = req.params;
+            let { email, password, role } = req.body;
+            email = email.toLowerCase().trim();
+            password = password.trim();
+
+            // Validate: Ensure id is a positive integer
+            if (!id || isNaN(id) || parseInt(id) <= 0) {
+                return next(ApiError.badRequest('Invalid user ID', { field: 'id' }));
+            }
+
+            // Find user by Primary Key, excluding password
+            const user = await User.findByPk(id);
+            // Check if user exists
+            if (!user) {
+                return next(ApiError.notFound('User not found', { field: 'id' }));
+            }
+
+            // Check access: user can update their own data, admins can update any user
+            if (user.id !== req.user.id && req.user.role !== 'ADMIN') {
+                return next(ApiError.forbidden('Access denied. You can only update your own data'));
+            }
+
+            // Prepare update data
+            const updateData = {};
+
+            // Validate and add email if provided
+            if (email) {
+                if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+                    return next(ApiError.badRequest('Invalid email format', { field: 'email' }));
+                }
+                // Check if new email is already registered by another user
+                const existingUser = await User.findOne({ where: { email } });
+                if (existingUser && existingUser.id !== user.id) {
+                    return next(ApiError.badRequest('Email already registered', { field: 'email' }));
+                }
+                updateData.email = email;
+            }
+
+            // Validate and password if provided
+            if (password) {
+                // if (password.length < 6) {
+                //     return next(ApiError.badRequest('Password must be at least 6 characters', { field: 'password' }));
+                // }
+                updateData.password = await bcrypt.hash(password, 5);
+            }
+
+            // Validate and role if provided
+            if (role) {
+                if (!['USER', 'ADMIN'].includes(role)) {
+                    return next(ApiError.badRequest('Invalid role', { field: 'role' }));
+                }
+                if (req.user.role !== 'ADMIN') {
+                    return next(ApiError.forbidden('Access denied. Only admins can update role'));
+                }
+                updateData.role = role;
+            }
+
+            // Check if there are any fields to update
+            if (Object.keys(updateData).length === 0) {
+                return next(ApiError.badRequest('No valid fields provided for update'));
+            }
+
+            // Update user data
+            await user.update(updateData);
+
+            // Return updated user data
+            return res.json({
+                id: user.id,
+                email: user.email,
+                role: user.role
+            });
+
+        } catch (error) {
+            console.error('Error updating user:', error);
+            return next(ApiError.internal('Error updating user', { details: error.message }));
+        }
     }
 
-    async delete(req, res) {
-        res.json({ message: 'Delete a user' });
+    // Deletes a user and their associated data
+    // Expects: req.params.id (user ID), valid JWT token
+    // Returns: JSON with success message
+    // Throws: ApiError if user not found, access denied, or database errors
+    async delete(req, res, next) {
+        try {
+            const { id } = req.params;
+
+            // Validate ID: ensure it's provided, numeric, and positive
+            if (!id || isNaN(id) || parseInt(id) <= 0) {
+                return next(ApiError.badRequest('Invalid user ID', { field: 'id' }));
+            }
+
+            // Find user by primary key
+            const user = await User.findByPk(id);
+            if (!user) {
+                return next(ApiError.notFound('User not found', { field: 'id' }));
+            }
+
+            // Check access: user can delete their own account, admins can delete any user
+            if (req.user.id !== user.id && req.user.role !== 'ADMIN') {
+                return next(ApiError.forbidden('Access denied. You can only delete your own account or need ADMIN role'));
+            }
+
+            // Delete associated data: basket, ratings, basket devices
+            await Promise.all([
+                Basket.destroy({ where: { userId: id } }),
+                Rating.destroy({ where: { userId: id } }),
+                BasketDevice.destroy({ where: { basketId: id } }), // Assumes BasketDevice is linked via basket
+            ]);
+
+            // Delete user
+            await User.destroy({ where: { id } });
+
+            // Return success message
+            return res.json({ message: 'User deleted successfully' });
+        } catch (error) {
+            console.error('Error deleting user:', error);
+            return next(ApiError.internal('Error deleting user', { details: error.message }));
+        }
     }
 }
 

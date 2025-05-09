@@ -3,7 +3,9 @@
 import 'dotenv/config'; // const dotenv = require('dotenv/config');
 import express from 'express'; // const express = require('express');
 import cors from 'cors'; // const cors = require('cors');
+
 import sequelize from './db.js'; // const sequelize = require('./db');
+
 import path from 'path';
 import { fileURLToPath } from 'url';
 
