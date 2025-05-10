@@ -68,32 +68,42 @@ export const OrderDevice = sequelize.define("order_device", {
 // Define relationships between models
 User.hasOne(Basket);
 Basket.belongsTo(User);
+
 User.hasMany(Order);
 Order.belongsTo(User);
+
 User.hasMany(Rating);
 Rating.belongsTo(User);
 
+
 Device.hasMany(BasketDevice);
 BasketDevice.belongsTo(Device);
+
 Basket.hasMany(BasketDevice);
 BasketDevice.belongsTo(Basket);
 
+
 Order.hasMany(OrderDevice);
 OrderDevice.belongsTo(Order);
+
 Device.hasMany(OrderDevice);
 OrderDevice.belongsTo(Device);
+
 
 Type.hasMany(Device);
 Device.belongsTo(Type);
 
+
 Brand.hasMany(Device);
 Device.belongsTo(Brand);
+
 
 Device.hasMany(Rating);
 Rating.belongsTo(Device);
 
 Device.hasMany(DeviceInfo);
 DeviceInfo.belongsTo(Device);
+
 
 Type.belongsToMany(Brand, { through: TypeBrand });
 Brand.belongsToMany(Type, { through: TypeBrand });
