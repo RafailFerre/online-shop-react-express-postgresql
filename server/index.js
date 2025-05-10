@@ -4,7 +4,7 @@ import 'dotenv/config'; // const dotenv = require('dotenv/config');
 import express from 'express'; // const express = require('express');
 import cors from 'cors'; // const cors = require('cors');
 
-import sequelize from './db.js'; // const sequelize = require('./db');
+import sequelize from './config/db.js'; // const sequelize = require('./db');
 
 import path from 'path';
 import { fileURLToPath } from 'url';
@@ -22,7 +22,7 @@ const app = express();  // create express app
 
 app.use(cors()); // make requests from client (browser)
 app.use(express.json()); // make requests from client (browser) as json (parse JSON request bodies)
-app.use('/static', express.static(path.join(__dirname, 'static'))); // Serve static files
+app.use('/static', express.static(path.join(__dirname, 'static'))); // Serve static files from baseurl/static/images/...
 app.use('/api', routes); // connect routers to app
 
 app.use(errorHandler); // error handler registration
