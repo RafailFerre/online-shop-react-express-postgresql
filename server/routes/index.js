@@ -6,6 +6,7 @@ import deviceRouter from './deviceRouter.js'; // Handles device-related API requ
 import brandRouter from './brandRouter.js'; // Handles brand-related API requests
 import typeRouter from './typeRouter.js'; // Handles type-related API requests
 import basketRouter from './basketRouter.js'; // Handles basket-related API requests
+import orderRouter from './orderRouter.js'; // Handles order-related API requests
 
 
 // Create a new instance of the Express Router
@@ -18,6 +19,7 @@ router.use('/device', deviceRouter); // Mount device router at /device
 router.use('/brand', brandRouter); // Mount brand router at /brand
 router.use('/type', typeRouter); // Mount type router at /type
 router.use('/basket', basketRouter); // Mount basket router at /basket
+router.use('/order', orderRouter); // Mount order router at /order
 
 
 // Export the main router as the default export into main index.js as routes when imported 
