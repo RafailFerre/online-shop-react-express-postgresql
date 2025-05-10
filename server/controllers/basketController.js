@@ -1,5 +1,5 @@
 import ApiError from "../error/ApiError.js";
-import { Basket, BasketDevice, Device } from "../models/models.js";
+import { Basket, BasketDevice, Device, Type, Brand } from "../models/models.js";
 
 
 class BasketController {
@@ -29,14 +29,22 @@ class BasketController {
                 return next(ApiError.notFound('Device not found', { field: 'deviceId' }));
             }
 
-            // Check if device is already in basket (avoid duplicates)
+            // Check if device is already in basket then increment quantity by 1 else create basketDevice
             const existingDevice = await BasketDevice.findOne({ where: { basketId: basket.id, deviceId } });
             if (existingDevice) {
-                return next(ApiError.badRequest('Device is already in basket', { field: 'deviceId' }));
+                await existingDevice.update({ quantity: existingDevice.quantity + 1 });
+                // Return updated basket
+            } else {
+                await BasketDevice.create({ basketId: basket.id, deviceId });
             }
 
-            // Add device to basket
-            await BasketDevice.create({ basketId: basket.id, deviceId });
+            // Check if device is already in basket (avoid duplicates)
+            // if (existingDevice) {
+            //     return next(ApiError.badRequest('Device is already in basket', { field: 'deviceId' }));
+            // }
+
+            // // Add device to basket
+            // await BasketDevice.create({ basketId: basket.id, deviceId });
 
             // Check if user has a basket with devices
             const basketWithDevices = await Basket.findOne({ 
@@ -45,7 +53,11 @@ class BasketController {
                     model: BasketDevice, 
                     include: [{ 
                         model: Device, 
-                        attributes: ['id', 'name', 'price', 'img', 'brandId', 'typeId'] 
+                        attributes: ['id', 'name', 'price', 'img'],
+                        include: [
+                            { model: Brand, attributes: ['name'] },
+                            { model: Type, attributes: ['name'] },
+                        ],
                     }], 
                 }],
                 order: [[{ model: BasketDevice }, 'createdAt', 'DESC']], // Sort by creation date
@@ -79,7 +91,11 @@ class BasketController {
                     model: BasketDevice, 
                     include: [{ 
                         model: Device, 
-                        attributes: ['id', 'name', 'price', 'img', 'brandId', 'typeId'] 
+                        attributes: ['id', 'name', 'price', 'img'],
+                        include: [
+                            { model: Brand, attributes: ['name'] },
+                            { model: Type, attributes: ['name'] },
+                        ],
                     }], 
                 }],
                 order: [[{ model: BasketDevice }, 'createdAt', 'DESC']], // Sort by creation date
@@ -139,7 +155,11 @@ class BasketController {
                     model: BasketDevice, 
                     include: [{ 
                         model: Device, 
-                        attributes: ['id', 'name', 'price', 'img', 'brandId', 'typeId'] 
+                        attributes: ['id', 'name', 'price', 'img'],
+                        include: [
+                            { model: Brand, attributes: ['name'] },
+                            { model: Type, attributes: ['name'] },
+                        ],
                     }], 
                 }],
                 order: [[{ model: BasketDevice }, 'createdAt', 'DESC']], // Sort by creation date

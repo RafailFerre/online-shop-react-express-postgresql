@@ -14,6 +14,7 @@ export const Basket = sequelize.define("basket", {
 
 export const BasketDevice = sequelize.define("basket_device", {
     id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
+    quantity: { type: DataTypes.INTEGER, defaultValue: 1, allowNull: false }, // Add quantity field
 });
 
 export const Device = sequelize.define("device", {
