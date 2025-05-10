@@ -1,5 +1,5 @@
 import ApiError from "../error/ApiError.js";
-import { Basket, BasketDevice, Device, Type, Brand } from "../models/models.js";
+import { Basket, BasketDevice, Device, Type, Brand, Order, OrderDevice } from "../models/models.js";
 
 
 class BasketController {
@@ -197,10 +197,17 @@ class BasketController {
         }
     }
 
-    // Processes checkout by clearing the user's basket
+    // Processes checkout by creating an order and clearing the user's basket
+    // Expects: req.body = { address }, valid JWT token (via AuthMiddleware)
     async checkout(req, res, next) {
         try {
-            const userId = req.user.id;
+            const { address } = req.body; // Extract address from request body
+            const userId = req.user.id; // Get the user ID from the request
+
+            // Validate address
+            if (!address || typeof address !== 'string' || address.trim().length < 5) {
+                return next(ApiError.badRequest('Invalid delivery address', { field: 'address' }));
+            }
 
             // Find user's basket
             const basket = await Basket.findOne({ where: { userId } });
@@ -208,17 +215,62 @@ class BasketController {
                 return next(ApiError.notFound('Basket not found for this user'));
             }
 
-            // Check if basket is empty
-            const basketDevices = await BasketDevice.findAll({ where: { basketId: basket.id } });
+            // Get basket devices with full device details
+            const basketDevices = await BasketDevice.findAll({
+                where: { basketId: basket.id },
+                include: [{
+                    model: Device,
+                    attributes: ['id', 'name', 'price', 'img'],
+                }],
+            });
             if (basketDevices.length === 0) {
                 return next(ApiError.badRequest('Basket is empty'));
             }
 
-            // Clear basket (delete all BasketDevice records)
+            // Calculate total amount
+            const total = basketDevices.reduce((sum, bd) => {
+                return sum + bd.device.price * bd.quantity;
+            }, 0);
+
+            // Create order
+            const order = await Order.create({
+                userId,
+                total,
+                address: address.trim(),
+                status: 'pending',
+            });
+
+            // Create order devices
+            const orderDevices = basketDevices.map(bd => ({
+                orderId: order.id,
+                deviceId: bd.deviceId,
+                quantity: bd.quantity,
+            }));
+            await OrderDevice.bulkCreate(orderDevices);
+
+            // Clear basket
             await BasketDevice.destroy({ where: { basketId: basket.id } });
 
-            // Return success message
-            return res.json({ message: 'Checkout successful, basket cleared' });
+            // Prepare response with order details
+            const devices = basketDevices.map(bd => ({
+                id: bd.device.id,
+                name: bd.device.name,
+                price: bd.device.price,
+                img: bd.device.img,
+                quantity: bd.quantity,
+            }));
+
+            return res.json({
+                message: 'Checkout successful, order created',
+                order: {
+                    id: order.id,
+                    total: order.total,
+                    address: order.address,
+                    status: order.status,
+                    createdAt: order.createdAt,
+                    devices,
+                },
+            });
         } catch (error) {
             console.error('Error processing checkout:', error);
             return next(ApiError.internal('Error processing checkout', { details: error.message }));
