@@ -197,10 +197,7 @@ class BasketController {
         }
     }
 
-        // Processes checkout by clearing the user's basket
-    // Expects: Valid JWT token (via AuthMiddleware)
-    // Returns: JSON with success message
-    // Throws: ApiError if basket not found or database errors
+    // Processes checkout by clearing the user's basket
     async checkout(req, res, next) {
         try {
             const userId = req.user.id;
