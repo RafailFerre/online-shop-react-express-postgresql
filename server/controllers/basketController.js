@@ -63,8 +63,11 @@ class BasketController {
                 order: [[{ model: BasketDevice }, 'createdAt', 'DESC']], // Sort by creation date
              });
 
+            // Extract devices with quantity
+            const devices = basketWithDevices.basket_devices.map(bd => ({ ...bd.device.toJSON(), quantity: bd.quantity, }));
+
             // Extract devices (empty array if none)
-            const devices = basketWithDevices.basket_devices.map(bd => bd.device) || [];
+            // const devices = basketWithDevices.basket_devices.map(bd => bd.device) || [];
             // const devices = basketWithDevices?.basket_devices?.map(bd => bd.device) || [];  --> ?. is the optional chaining operator, which returns undefined if the preceding value is null or undefined, rather than throwing an error.
             // const devices = basketWithDevices && basketWithDevices.basket_devices ? basketWithDevices.basket_devices.map(bd => bd.device) : [];
 
@@ -104,8 +107,11 @@ class BasketController {
                 return next(ApiError.notFound('Basket not found for user', { field: 'userId' }));
             }
 
+            // Extract devices with quantity
+            const devices = basket.basket_devices.map(bd => ({ ...bd.device.toJSON(), quantity: bd.quantity, }));
+
             // Extract devices and return devices in basket
-            const devices = basket.basket_devices.map(bd => bd.device);
+            // const devices = basket.basket_devices.map(bd => bd.device);
             return res.json(devices);
         } catch (error) {
             console.error('Error retrieving basket:', error);
@@ -145,8 +151,15 @@ class BasketController {
             // Store device name before deletion
             const deviceName = basketDevice.device.name;
 
-            // Remove device from basket
-            await basketDevice.destroy();
+            // Decrease quantity or remove device
+            if (basketDevice.quantity > 1) {
+                await basketDevice.update({ quantity: basketDevice.quantity - 1 });
+            } else {
+                await basketDevice.destroy();
+            }
+
+            // // Remove device from basket
+            // await basketDevice.destroy();
 
             // Check if basket has devices
             const basketWithDevices = await Basket.findOne({ 
@@ -165,9 +178,11 @@ class BasketController {
                 order: [[{ model: BasketDevice }, 'createdAt', 'DESC']], // Sort by creation date
              });
 
-            // Extract devices (empty array if none)
-            const devices = basketWithDevices.basket_devices.map(bd => bd.device) || [];
+            // Extract devices with quantity
+            const devices = basketWithDevices.basket_devices.map(bd => ({ ...bd.device.toJSON(), quantity: bd.quantity, }));
 
+            // Extract devices (empty array if none)
+            // const devices = basketWithDevices.basket_devices.map(bd => bd.device) || [];
             // const devices = basketWithDevices?.basket_devices?.map(bd => bd.device) || [];  --> ?. is the optional chaining operator, which returns undefined if the preceding value is null or undefined, rather than throwing an error.
             // const devices = basketWithDevices && basketWithDevices.basket_devices ? basketWithDevices.basket_devices.map(bd => bd.device) : [];
 
