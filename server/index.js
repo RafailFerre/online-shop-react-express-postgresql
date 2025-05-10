@@ -22,7 +22,7 @@ const app = express();  // create express app
 
 app.use(cors()); // make requests from client (browser)
 app.use(express.json()); // make requests from client (browser) as json (parse JSON request bodies)
-app.use('/static', express.static(path.join(__dirname, 'static'))); // Serve static files
+app.use('/static', express.static(path.join(__dirname, 'static'))); // Serve static files from baseurl/static/images/...
 app.use('/api', routes); // connect routers to app
 
 app.use(errorHandler); // error handler registration
