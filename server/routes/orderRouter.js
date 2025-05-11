@@ -1,10 +1,13 @@
 import { Router } from 'express';
 import OrderController from '../controllers/orderController.js';
-import authMiddleware from '../middleware/AuthMiddleware.js';
+import AuthMiddleware from '../middleware/AuthMiddleware.js';
 
 const router = new Router();
 
-router.get('/', authMiddleware, OrderController.getOrders);
-router.get('/all', authMiddleware, OrderController.getAllOrders);
+router.get('/', AuthMiddleware, OrderController.getOrders); // Get user orders
+
+router.get('/all', AuthMiddleware, OrderController.getAllOrders); // Get all orders
+
+// router.delete('/:id', AuthMiddleware, OrderController.deleteOrder); // Delete order
 
 export default router;

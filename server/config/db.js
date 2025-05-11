@@ -14,5 +14,31 @@ const sequelize = new Sequelize(
   }
 );
 
+// Function to initialize database connection and sync models
+export const initializeDatabase = async () => {
+  try {
+    await sequelize.authenticate(); // Verify database connection
+    console.log('Database connection established successfully');
+    await sequelize.sync({ alter: true }); // Sync models with database
+    console.log('Database synchronized successfully');
+  } catch (error) {
+    console.error('Error initializing database:', error);
+    throw error; // Rethrow error to be handled by caller
+  }
+};
+
+// Initialize database connection and sync models
+// (async () => {
+//   try {
+//     await sequelize.authenticate(); // Verify database connection
+//     console.log('Database connection established successfully');
+//     await sequelize.sync({ alter: true }); // Sync models with database, update table structures
+//     console.log('Database synchronized successfully');
+//   } catch (error) {
+//     console.error('Error initializing database:', error);
+//     process.exit(1); // Exit process on failure
+//   }
+// })();
+
 export default sequelize;  // module.exports = { sequelize };
 

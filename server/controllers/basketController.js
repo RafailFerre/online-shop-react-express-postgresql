@@ -158,7 +158,7 @@ class BasketController {
                 await basketDevice.destroy();
             }
 
-            // // Remove device from basket
+            // // Remove device from basket fully with all quantity
             // await basketDevice.destroy();
 
             // Check if basket has devices
