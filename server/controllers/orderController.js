@@ -1,5 +1,6 @@
 import { Order, OrderDevice, Device, User } from '../models/models.js';
 import ApiError from '../error/ApiError.js';
+import sequelize from '../config/db.js';
 
 class OrderController {
     // Retrieves all orders for the authenticated user
@@ -132,11 +133,11 @@ class OrderController {
             await order.update({ status });
             
             // Log action
-            console.log(`Admin ${req.user.id} updated order ${orderId} status to ${status}`);
+            console.log(`Admin ${req.user.id} updated order with id ${orderId} status to ${status}`);
 
             // Return updated order
             return res.json({
-                message: `Order ${orderId} status updated to ${status}`,
+                message: `Order with id ${orderId} status updated to ${status}.`,
                 order: {
                     id: order.id,
                     total: order.total,
@@ -148,6 +149,56 @@ class OrderController {
     } catch (error) {
             console.error('Error updating order status:', error);
             return next(ApiError.internal('Error updating order status', { details: error.message }));
+        }
+    }
+
+    // Deletes an order and its associated devices (admin only)
+    // Expects: req.params.id (orderId), valid JWT token with role 'ADMIN'
+    // Returns: JSON with success message
+    // Throws: ApiError if not admin, order not found, or database error
+    async deleteOrder(req, res, next) {
+        try {
+            // Check if user is admin
+            if (req.user.role !== 'ADMIN') {
+                return next(ApiError.forbidden('Access denied: Admin only'));
+            }
+
+            // Extract orderId from request params
+            const orderId = parseInt(req.params.id, 10);
+            if (isNaN(orderId)) {
+                return next(ApiError.badRequest('Invalid orderId', { field: 'orderId' }));
+            }
+
+            // Start transaction. This will ensure that both the order and its associated devices are deleted atomically
+            const result = await sequelize.transaction(async (t) => {
+                // Find order
+                const order = await Order.findByPk(orderId, { transaction: t });
+                if (!order) {
+                    throw ApiError.notFound(`Order with id ${orderId} not found`);
+                }
+
+                // Delete associated order devices
+                await OrderDevice.destroy({
+                    where: { orderId },
+                    transaction: t,
+                });
+
+                // Delete order
+                await order.destroy({ transaction: t });
+
+                return { orderId };
+            });
+
+            // Log action
+            console.log(`Admin ${req.user.id} deleted order with id ${result.orderId}`);
+
+            // Return success message
+            return res.json({
+                message: `Order with id ${result.orderId} deleted successfully`,
+            });
+        } catch (error) {
+            console.error('Error deleting order:', error);
+            return next(error instanceof ApiError ? error : ApiError.internal('Error deleting order', { details: error.message }));
         }
     }
 

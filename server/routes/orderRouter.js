@@ -13,4 +13,7 @@ router.get('/all', AuthMiddleware, OrderController.getAllOrders);
 // Update order status (admin only)
 router.put('/status', AuthMiddleware, OrderController.updateOrderStatus);
 
+// Delete an order (admin only)
+router.delete('/:id', AuthMiddleware, OrderController.deleteOrder);
+
 export default router;
