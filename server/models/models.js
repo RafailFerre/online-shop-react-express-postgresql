@@ -50,30 +50,60 @@ export const TypeBrand = sequelize.define("type_brand", {
     id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
 });
 
+// Order model
+export const Order = sequelize.define("order", {
+    id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
+    userId: { type: DataTypes.INTEGER, allowNull: false },
+    total: { type: DataTypes.INTEGER, allowNull: false }, // Total order amount
+    address: { type: DataTypes.STRING, allowNull: false }, // Delivery address
+    status: { type: DataTypes.STRING, defaultValue: "pending", allowNull: false }, // Order status
+});
+
+// OrderDevice model (junction table for orders and devices)
+export const OrderDevice = sequelize.define("order_device", {
+    id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
+    quantity: { type: DataTypes.INTEGER, defaultValue: 1, allowNull: false },
+});
+
 // Define relationships between models
 User.hasOne(Basket);
 Basket.belongsTo(User);
 
+User.hasMany(Order);
+Order.belongsTo(User);
+
 User.hasMany(Rating);
 Rating.belongsTo(User);
 
-Basket.hasMany(BasketDevice);
-BasketDevice.belongsTo(Basket);
-
-Type.hasMany(Device);
-Device.belongsTo(Type);
-
-Brand.hasMany(Device);
-Device.belongsTo(Brand);
-
-Device.hasMany(Rating);
-Rating.belongsTo(Device);
 
 Device.hasMany(BasketDevice);
 BasketDevice.belongsTo(Device);
 
+Basket.hasMany(BasketDevice);
+BasketDevice.belongsTo(Basket);
+
+
+Order.hasMany(OrderDevice);
+OrderDevice.belongsTo(Order);
+
+Device.hasMany(OrderDevice);
+OrderDevice.belongsTo(Device);
+
+
+Type.hasMany(Device);
+Device.belongsTo(Type);
+
+
+Brand.hasMany(Device);
+Device.belongsTo(Brand);
+
+
+Device.hasMany(Rating);
+Rating.belongsTo(Device);
+
 Device.hasMany(DeviceInfo);
 DeviceInfo.belongsTo(Device);
+
 
 Type.belongsToMany(Brand, { through: TypeBrand });
 Brand.belongsToMany(Type, { through: TypeBrand });
