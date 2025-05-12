@@ -99,21 +99,58 @@ class OrderController {
         }
     }
 
-    // async deleteOrder(req, res, next) {
-    //     try {
-    //         const orderId = req.params.id;
+    // Updates order status by ID (admin only)
+    // Expects: req.body = { orderId, status }, valid JWT token with role 'ADMIN' (via AuthMiddleware)
+    async updateOrderStatus(req, res, next) {
+        try {
+            // Check if user is admin
+            if (req.user.role !== 'ADMIN') {
+                return next(ApiError.forbidden('Access denied: Admin only'));
+            }
+
+            // Extract orderId and status from request body
+            const { orderId, status } = req.body;
+
+            // Validate inputs orderId
+            if(!orderId || typeof orderId !== 'number' || orderId <= 0) {
+                return next(ApiError.badRequest('Invalid order ID', { field: 'orderId' }));
+            }
+
+            // Validate inputs status
+            const validStatuses = ['pending', 'shipped', 'delivered'];            
+            if(!status || !validStatuses.includes(status)) {
+                return next(ApiError.badRequest(`Status must be one of ${validStatuses.join(', ')}`, { field: 'status' }));
+            }
+
+            // Find order by ID
+            const order = await Order.findByPk(orderId);
+            if (!order) {
+                return next(ApiError.notFound(`Order with ID ${orderId} not found`));
+            }
+
+            // Update order status
+            await order.update({ status });
             
-    //         const order = await Order.findOne({ where: { id: orderId } });
-    //         if (!order) {
-    //             return next(ApiError.notFound('Order not found'));
-    //         }
-    //         await order.destroy();
-    //         return res.json({ message: 'Order deleted successfully' });
-    //     } catch (error) {
-    //         console.error('Error deleting order:', error);
-    //         return next(ApiError.internal('Error deleting order', { details: error.message }));
-    //     }
-    // }
+            // Log action
+            console.log(`Admin ${req.user.id} updated order ${orderId} status to ${status}`);
+
+            // Return updated order
+            return res.json({
+                message: `Order ${orderId} status updated to ${status}`,
+                order: {
+                    id: order.id,
+                    total: order.total,
+                    address: order.address,
+                    status: order.status,
+                    createdAt: order.createdAt,
+                }
+            });
+    } catch (error) {
+            console.error('Error updating order status:', error);
+            return next(ApiError.internal('Error updating order status', { details: error.message }));
+        }
+    }
+
 }
 
 export default new OrderController();

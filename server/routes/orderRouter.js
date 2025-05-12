@@ -4,10 +4,13 @@ import AuthMiddleware from '../middleware/AuthMiddleware.js';
 
 const router = new Router();
 
-router.get('/', AuthMiddleware, OrderController.getOrders); // Get user orders
+// Get all orders for the authenticated user
+router.get('/', AuthMiddleware, OrderController.getOrders);
 
-router.get('/all', AuthMiddleware, OrderController.getAllOrders); // Get all orders
+// Get all orders (admin only)
+router.get('/all', AuthMiddleware, OrderController.getAllOrders);
 
-// router.delete('/:id', AuthMiddleware, OrderController.deleteOrder); // Delete order
+// Update order status (admin only)
+router.put('/status', AuthMiddleware, OrderController.updateOrderStatus);
 
 export default router;
