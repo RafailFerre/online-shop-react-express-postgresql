@@ -7,6 +7,7 @@ import brandRouter from './brandRouter.js'; // Handles brand-related API request
 import typeRouter from './typeRouter.js'; // Handles type-related API requests
 import basketRouter from './basketRouter.js'; // Handles basket-related API requests
 import orderRouter from './orderRouter.js'; // Handles order-related API requests
+import ratingRouter from './ratingRouter.js'; // Handles rating-related API requests
 
 
 // Create a new instance of the Express Router
@@ -20,6 +21,7 @@ router.use('/brand', brandRouter); // Mount brand router at /brand
 router.use('/type', typeRouter); // Mount type router at /type
 router.use('/basket', basketRouter); // Mount basket router at /basket
 router.use('/order', orderRouter); // Mount order router at /order
+router.use('/rating', ratingRouter); // Mount rating router at /rating
 
 
 // Export the main router as the default export into main index.js as routes when imported 
