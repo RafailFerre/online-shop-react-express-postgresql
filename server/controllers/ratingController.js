@@ -127,7 +127,46 @@ class RatingController {
         }
     }
 
+    // Deletes a rating (admin can delete any, user only their own)
+    // Expects: req.params.ratingId, valid JWT token
+    // Returns: JSON with success message
+    async deleteRating(req, res, next) {
+        try {
+            const ratingId = parseInt(req.params.ratingId, 10);
+            const userId = req.user.id;
+            const isAdmin = req.user.role === 'ADMIN';
 
+            // Validate input
+            if (isNaN(ratingId)) {
+                return next(ApiError.badRequest('Invalid ratingId', { field: 'ratingId' }));
+            }
+
+            // Find rating
+            const rating = await Rating.findByPk(ratingId);
+            if (!rating) {
+                return next(ApiError.notFound(`Rating with id ${ratingId} not found`));
+            }
+
+            // Check permissions
+            if (!isAdmin && rating.userId !== userId) {
+                return next(ApiError.forbidden('You can only delete your own ratings'));
+            }
+
+            // Delete rating
+            await rating.destroy();
+
+            // Log action
+            console.log(`${isAdmin ? 'Admin' : 'User'} ${userId} deleted rating ${ratingId}`);
+
+            // Return success response
+            return res.json({
+                message: `Rating ${ratingId} deleted successfully`,
+            });
+        } catch (error) {
+            console.error('Error deleting rating:', error);
+            return next(ApiError.internal('Error deleting rating', { details: error.message }));
+        }
+    }
 }
 
 export default new RatingController();
