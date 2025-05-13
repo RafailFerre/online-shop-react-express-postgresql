@@ -1,6 +1,6 @@
-import { Rating, Device } from '../models/models.js';
+import { Rating, Device, User } from '../models/models.js';
 import ApiError from '../error/ApiError.js';
-// import sequelize from '../config/db.js';
+import sequelize from '../config/db.js';
 
 
 class RatingController {
@@ -63,7 +63,71 @@ class RatingController {
         }
     }
 
-  
+    // Retrieves average rating, number of ratings, and ratings list for a device
+    // Expects: req.params.deviceId
+    // Returns: JSON with average rating, count, and ratings list
+    async getDeviceRating(req, res, next) {
+        try {
+            const deviceId = parseInt(req.params.deviceId, 10);
+            if (isNaN(deviceId)) {
+                return next(ApiError.badRequest('Invalid deviceId', { field: 'deviceId' }));
+            }
+
+            // Check if device exists
+            const device = await Device.findByPk(deviceId);
+            if (!device) {
+                return next(ApiError.notFound(`Device with id ${deviceId} not found`));
+            }
+
+            // Get average rating and count
+            const [aggregate] = await Rating.findAll({
+                where: { deviceId },
+                attributes: [
+                    [sequelize.fn('AVG', sequelize.col('rate')), 'averageRating'],
+                    [sequelize.fn('COUNT', sequelize.col('rating.id')), 'ratingCount'],
+                ],
+                raw: true, // Return plain object for aggregates
+            });
+
+            // Get individual ratings with user details
+            const ratings = await Rating.findAll({
+                where: { deviceId },
+                include: [{ model: User, attributes: ['id', 'email'] }],
+                attributes: ['id', 'userId', 'deviceId', 'rate', 'comment', 'createdAt', 'updatedAt'],
+            });
+
+            // Extract average rating and count
+            const averageRating = aggregate && aggregate.averageRating ? parseFloat(aggregate.averageRating) : 0;
+            const ratingCount = aggregate && aggregate.ratingCount ? parseInt(aggregate.ratingCount, 10) : 0;
+
+            // Format ratings list
+            const ratingsList = ratings.map(rating => ({
+                id: rating.id,
+                user: {
+                    id: rating.user.id,
+                    email: rating.user.email,
+                },
+                rate: rating.rate,
+                comment: rating.comment,
+                createdAt: rating.createdAt,
+                updatedAt: rating.updatedAt,
+            }));
+
+            // Return response
+            return res.json({
+                deviceId,
+                deviceName: device.name,
+                averageRating: averageRating.toFixed(1), // Round to 1 decimal place
+                ratingCount,
+                ratings: ratingsList,
+            });
+        } catch (error) {
+            console.error('Error retrieving device rating:', error);
+            return next(ApiError.internal('Error retrieving device rating', { details: error.message }));
+        }
+    }
+
+
 }
 
 export default new RatingController();
