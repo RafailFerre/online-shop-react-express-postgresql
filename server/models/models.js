@@ -1,4 +1,4 @@
-import sequelize from "../config/db.js";  // const sequelize = require('../db');
+import sequelize from "../config/db.js";  // const sequelize = require('../config/db');
 import { DataTypes } from "sequelize";  // const { DataTypes } = require('sequelize');
 
 export const User = sequelize.define("user", {
@@ -37,7 +37,17 @@ export const Brand = sequelize.define("brand", {
 
 export const Rating = sequelize.define("rating", {
     id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
-    rate: { type: DataTypes.INTEGER, allowNull: false },
+    userId: { type: DataTypes.INTEGER, allowNull: false },
+    deviceId: { type: DataTypes.INTEGER, allowNull: false },
+    rate: { type: DataTypes.INTEGER, allowNull: false, validate: { min: 1, max: 5 } }, // Ensures rate is between 1 and 5
+    comment: { type: DataTypes.STRING(500), allowNull: true }, // Optional comment, max 500 characters
+}, {
+    indexes: [  // Ensure one rating per user per device
+        {
+            unique: true,
+            fields: ['userId', 'deviceId']
+        }
+    ]
 });
 
 export const DeviceInfo = sequelize.define("device_info", {
