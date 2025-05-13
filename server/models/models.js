@@ -1,4 +1,4 @@
-import sequelize from "../config/db.js";  // const sequelize = require('../db');
+import sequelize from "../config/db.js";  // const sequelize = require('../config/db');
 import { DataTypes } from "sequelize";  // const { DataTypes } = require('sequelize');
 
 export const User = sequelize.define("user", {
