@@ -10,11 +10,20 @@ function App() {
     <BrowserRouter>
       <AppRouter />
     </BrowserRouter>
-     
-    // <div>
-    //   <h1>Online Shop</h1>
-    // </div>
   );
 }
 
 export default App;
+
+
+
+// First version before Pages and routing
+// function App() {
+//   return (
+//     <div>
+//       <h1>Online Shop</h1>
+//     </div>
+//   );
+// }
+
+// export default App;
