@@ -1,7 +1,24 @@
+import { Routes, Route, Navigate } from 'react-router-dom';
+import { publicRoutes, privateRoutes } from './routes';
+import { HOME_ROUTE } from './utils/consts';
 
 
+// Component for handling page navigation
+function AppRouter() {
+    return (
+        <Routes>
+            {publicRoutes.map(({ path, Component }) => (
+                <Route key={path} path={path} element={<Component />} />
+            ))}
+            {privateRoutes.map(({ path, Component }) => (
+                <Route key={path} path={path} element={<Component />} />
+            ))}
+            <Route path="*" element={<Navigate to={HOME_ROUTE} />} />
+        </Routes>
+    );
+};
 
-
+export default AppRouter;
 
 // First version before using routes
 // import { Routes, Route } from 'react-router-dom';
