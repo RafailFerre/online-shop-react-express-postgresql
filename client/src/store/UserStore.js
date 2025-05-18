@@ -1,4 +1,4 @@
-import { makeAutoObservable } from 'mobx';
+import { makeAutoObservable } from "mobx";
 
 // Store for managing user authentication state
 class UserStore {
@@ -22,6 +22,12 @@ class UserStore {
     this.user = user;
   }
 
+  // Геттеры нужны только для вычисляемых значений:
+  // Computed: checks if user is admin
+  get isAdmin() {
+    return this.user.role === "admin";
+  }
+
   // Action: logs in user (temporary for testing)
   login(email) {
     this.setAuth(true);
@@ -37,5 +43,3 @@ class UserStore {
 
 // Export singleton instance of UserStore
 export const userStore = new UserStore();
-
-// Геттеры нужны только для вычисляемых значений (например, get isAdmin() { return this.user.role === 'admin'; }).
