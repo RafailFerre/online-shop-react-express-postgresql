@@ -1,20 +1,38 @@
 import "./App.css";
-import { BrowserRouter } from "react-router-dom";
-import AppRouter from "./AppRouter";
+import AppRouter from './AppRouter';
 
+// Main App component
 function App() {
   return (
-    <BrowserRouter>
-      <AppRouter />
-    </BrowserRouter>
+    <>
+      <div className="container mt-4">
+        <AppRouter />
+      </div>
+    </>
   );
 }
 
-export default App;
+export default App
 
 
 
-// First version before Pages and routing with AppRouter
+// Version before mobx
+// import { BrowserRouter } from "react-router-dom";
+// import AppRouter from "./AppRouter";
+
+// function App() {
+//   return (
+//     <BrowserRouter>
+//       <AppRouter />
+//     </BrowserRouter>
+//   );
+// }
+
+// export default App;
+
+
+
+// Version before Pages and routing with AppRouter
 // function App() {
 //   return (
 //     <div>
