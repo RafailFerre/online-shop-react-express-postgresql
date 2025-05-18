@@ -7,17 +7,17 @@ import { publicRoutes, privateRoutes } from './routes';
 import { HOME_ROUTE, LOGIN_ROUTE, ADMIN_ROUTE } from './utils/consts';
 
 // Component for handling page navigation with authentication
-const AppRouter = observer(() => {
+const AppRouter = observer(() => {  // Use observer to observe changes in userStore
   // Access userStore from StoreContext
   const { userStore } = useContext(StoreContext);
-  console.log(userStore);
+//   console.log(userStore);
 
   return (
     <Routes>
       {publicRoutes.map(({ path, Component }) => (
         <Route key={path} path={path} element={<Component />} />
       ))}
-      {userStore.isAuth ? (
+      {userStore.isAuth ? (  // Check if user is authenticated using isAuth from userStore
         privateRoutes.map(({ path, Component }) => (
           // Restrict admin route to admin users
           path === ADMIN_ROUTE && !userStore.isAdmin ? null : (
@@ -25,9 +25,9 @@ const AppRouter = observer(() => {
           )
         ))
       ) : (
-        <Route path="*" element={<Navigate to={LOGIN_ROUTE} />} />
+        <Route path="*" element={<Navigate to={LOGIN_ROUTE} />} /> // Redirect to login page if not authenticated
       )}
-      <Route path="*" element={<Navigate to={HOME_ROUTE} />} />
+      <Route path="*" element={<Navigate to={HOME_ROUTE} />} />   // Redirect to home page if no matching route
     </Routes>
   );
 });
